@@ -26,4 +26,5 @@ This app helps you **track transactions, set savings goals, and view financial s
 👨‍💻 Author
 
 Lakshmi Yogesh Kolte
+
 LinkedIn: www.linkedin.com/in/lakshmi-kolte
