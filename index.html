@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #0A2647;
+            --color-secondary: #144272;
+            --color-tertiary: #205295;
+            --color-accent-blue: #2C74B3;
+            --color-accent-light-blue: #70A2FF;
+            --color-income-highlight: #1A5E4F;
+            --color-expense-highlight: #723E4C;
+        }
+        body {
+            background-color: var(--color-primary);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .bg-primary { background-color: var(--color-primary); }
+        .bg-secondary { background-color: var(--color-secondary); }
+        .bg-tertiary { background-color: var(--color-tertiary); }
+        .bg-accent-blue { background-color: var(--color-accent-blue); }
+        .text-accent-light-blue { color: var(--color-accent-light-blue); }
+        .focus\:ring-accent-light-blue:focus {
+            --tw-ring-color: var(--color-accent-light-blue);
+        }
+        .bg-income-highlight { background-color: var(--color-income-highlight); }
+        .bg-expense-highlight { background-color: var(--color-expense-highlight); }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+        .animate-fade-in-delay {
+            animation: fadeIn 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+        .animate-fade-in-slide-up {
+            animation: fadeInSlideUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fade-in-down {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-down {
+            animation: fade-in-down 0.3s ease-out;
+        }
+
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="p-4 sm:p-8 relative min-h-screen flex items-center justify-center">
+        <!-- Authentication UI -->
+        <div id="auth-ui" class="flex flex-col items-center justify-center min-h-screen">
+            <div class="bg-secondary p-8 rounded-2xl shadow-lg border-2 border-tertiary w-full max-w-sm transition-transform transform hover:scale-105 duration-300">
+                <h2 id="auth-title" class="text-3xl font-bold mb-6 text-center text-accent-light-blue">Sign In</h2>
+                <form id="auth-form" class="space-y-4">
+                    <input id="email" type="email" placeholder="Email" required
+                        class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-light-blue" />
+                    <input id="password" type="password" placeholder="Password" required
+                        class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-light-blue" />
+                    <p id="auth-error" class="text-red-400 text-sm text-center"></p>
+                    <button id="auth-button" type="submit"
+                        class="w-full py-3 rounded-xl font-bold bg-accent-blue text-white hover:bg-accent-light-blue transition-colors duration-300 transform hover:scale-105 shadow-md">
+                        Login
+                    </button>
+                </form>
+                <button id="auth-toggle-button" class="w-full mt-4 text-center text-accent-light-blue text-sm hover:underline">
+                    Need an account? Register
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard UI -->
+        <div id="dashboard-ui" style="display: none;">
+            <header class="text-center mb-10 flex flex-col items-center">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-accent-light-blue tracking-wide drop-shadow-lg animate-fade-in">
+                    💰 Budget Dashboard
+                </h1>
+                <p class="text-secondary mt-2 text-sm sm:text-base animate-fade-in-delay">Track your finances and achieve your goals!</p>
+                <div class="absolute top-4 right-4">
+                    <p id="user-id" class="mt-2 text-xs opacity-70 animate-fade-in-delay"></p>
+                    <button id="logout-button" class="py-2 px-4 rounded-xl font-bold bg-accent-blue text-white hover:bg-accent-light-blue transition-colors duration-300 transform hover:scale-105 shadow-md">
+                        Logout
+                    </button>
+                </div>
+            </header>
+            
+            <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 w-full px-4">
+                <!-- Input Forms -->
+                <section class="bg-secondary p-6 rounded-2xl shadow-lg border-2 border-tertiary transition-transform transform hover:scale-105 duration-300">
+                    <h2 class="text-2xl font-bold mb-4 text-accent-light-blue">Add Transaction</h2>
+                    <div class="space-y-4">
+                        <input id="transaction-amount" type="number" placeholder="Amount"
+                            class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300" />
+                        <select id="transaction-type"
+                            class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300">
+                            <option value="expense">Expense 💸</option>
+                            <option value="income">Income 💰</option>
+                        </select>
+                        <select id="transaction-category"
+                            class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300">
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="food">Food 🍔</option>
+                            <option value="transportation">Transportation 🚌</option>
+                            <option value="housing">Housing 🏠</option>
+                            <option value="utilities">Utilities 💡</option>
+                            <option value="health">Health 🏥</option>
+                            <option value="shopping">Shopping 🛍️</option>
+                            <option value="education">Education 🎓</option>
+                            <option value="entertainment">Entertainment 🎬</option>
+                            <option value="bills">Bills 🧾</option>
+                            <option value="travel">Travel ✈️</option>
+                            <option value="salary">Salary 💼</option>
+                            <option value="freelance">Freelance 💻</option>
+                            <option value="loan">Loan 💳</option>
+                            <option value="parttime">Part-time Job 🕒</option>
+                            <option value="other">Other 🤔</option>
+                        </select>
+                        <p id="transaction-error" class="text-red-400 text-sm mt-2"></p>
+                        <button id="add-transaction-button"
+                            class="w-full py-3 rounded-xl font-bold bg-accent-blue text-white hover:bg-accent-light-blue transition-colors duration-300 transform hover:scale-105 shadow-md">
+                            Add Transaction
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Savings Goals -->
+                <section class="bg-secondary p-6 rounded-2xl shadow-lg border-2 border-tertiary transition-transform transform hover:scale-105 duration-300">
+                    <h2 class="text-2xl font-bold mb-4 text-accent-light-blue">Savings Goals ✨</h2>
+                    <div class="space-y-4">
+                        <input id="goal-name" type="text" placeholder="Goal Name"
+                            class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300" />
+                        <input id="goal-target" type="number" placeholder="Target Amount"
+                            class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300" />
+                        <p id="goal-error" class="text-red-400 text-sm mt-2"></p>
+                        <button id="add-goal-button"
+                            class="w-full py-3 rounded-xl font-bold bg-accent-blue text-white hover:bg-accent-light-blue transition-colors duration-300 transform hover:scale-105 shadow-md">
+                            Set Goal
+                        </button>
+                    </div>
+                    <div id="goals-list" class="mt-6 space-y-4"></div>
+                </section>
+
+                <!-- Data Visualizations -->
+                <section class="col-span-1 md:col-span-2 bg-secondary p-6 rounded-2xl shadow-lg border-2 border-tertiary">
+                    <h2 class="text-2xl font-bold mb-4 text-accent-light-blue">Financial Overview</h2>
+                    <div class="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div class="w-full sm:w-1/2">
+                            <label for="month-filter" class="block text-sm font-medium text-white mb-1">Filter by Month</label>
+                            <select id="month-filter"
+                                class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300">
+                                <option value="all">All Months</option>
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-1/2">
+                            <label for="category-filter" class="block text-sm font-medium text-white mb-1">Filter by Category</label>
+                            <select id="category-filter"
+                                class="w-full p-3 rounded-xl bg-tertiary border border-secondary text-white focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300">
+                                <option value="all">All Categories</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <!-- Pie Chart -->
+                        <div class="bg-tertiary p-4 rounded-xl shadow-md border border-secondary">
+                            <canvas id="expense-pie-chart" class="w-full h-64"></canvas>
+                        </div>
+                        <!-- Doughnut Chart -->
+                        <div class="bg-tertiary p-4 rounded-xl shadow-md border border-secondary">
+                            <canvas id="expense-doughnut-chart" class="w-full h-64"></canvas>
+                        </div>
+                        <!-- Bar Chart -->
+                        <div class="bg-tertiary p-4 rounded-xl shadow-md border border-secondary">
+                            <canvas id="bar-chart" class="w-full h-64"></canvas>
+                        </div>
+                        <!-- Waterfall Chart -->
+                        <div class="bg-tertiary p-4 rounded-2xl shadow-md border border-secondary">
+                            <canvas id="waterfall-chart" class="w-full h-64"></canvas>
+                        </div>
+                        <!-- Combination Chart -->
+                        <div class="bg-tertiary p-4 rounded-2xl shadow-md border border-secondary col-span-1 md:col-span-2">
+                            <canvas id="combination-chart" class="w-full h-64"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-xl font-bold mb-2 text-accent-light-blue">Recent Transactions</h3>
+                        <div class="overflow-y-auto max-h-64 rounded-xl bg-tertiary p-4 border border-secondary">
+                            <ul id="transactions-list" class="space-y-2"></ul>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+        
+        // Mandatory Firebase configuration variables. Do not modify.
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIWmjL3hd9DVfyGJlDlMWQstQLlyVID4g",
+            authDomain: "budget-planner-741e0.firebaseapp.com",
+            projectId: "budget-planner-741e0",
+            storageBucket: "budget-planner-741e0.appspot.com",
+            messagingSenderId: "767240684961",
+            appId: "1:767240684961:web:195d08a39c7ebfdf5937e0",
+            measurementId: "G-GRYCDBWT5E"
+        };
+        const appId = firebaseConfig.appId; // optional, for Firestore paths
+    
+        let app, db, auth;
+        let userId = null;
+        let isLoginMode = true;
+        let unsubscribeTransactions = null;
+        let unsubscribeGoals = null;
+
+        // Chart instances
+        let expensePieChart = null;
+        let expenseDoughnutChart = null;
+        let barChart = null;
+        let waterfallChart = null;
+        let combinationChart = null;
+
+        // DOM Elements
+        const authUI = document.getElementById('auth-ui');
+        const dashboardUI = document.getElementById('dashboard-ui');
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const authButton = document.getElementById('auth-button');
+        const authToggleButton = document.getElementById('auth-toggle-button');
+        const authError = document.getElementById('auth-error');
+        const logoutButton = document.getElementById('logout-button');
+        const userIdDisplay = document.getElementById('user-id');
+        const transactionAmountInput = document.getElementById('transaction-amount');
+        const transactionTypeSelect = document.getElementById('transaction-type');
+        const transactionCategorySelect = document.getElementById('transaction-category');
+        const transactionError = document.getElementById('transaction-error');
+        const addTransactionButton = document.getElementById('add-transaction-button');
+        const goalNameInput = document.getElementById('goal-name');
+        const goalTargetInput = document.getElementById('goal-target');
+        const addGoalButton = document.getElementById('add-goal-button');
+        const goalsList = document.getElementById('goals-list');
+        const transactionsList = document.getElementById('transactions-list');
+        const monthFilter = document.getElementById('month-filter');
+        const categoryFilter = document.getElementById('category-filter');
+
+        let allTransactions = [];
+        let allGoals = [];
+        let isFirebaseInitialized = false;
+
+        // Initialization
+        const initFirebase = async () => {
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is missing. Authentication will rely on email/password.");
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isFirebaseInitialized = true;
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        authError.textContent = '';
+                        authUI.style.display = 'none';
+                        dashboardUI.style.display = 'block';
+                        
+                        subscribeToData();
+
+                    } else {
+                        userId = null;
+                        authUI.style.display = 'flex';
+                        dashboardUI.style.display = 'none';
+                        unsubscribeFromData();
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+            }
+        };
+
+        const subscribeToData = () => {
+            if (!isFirebaseInitialized || !userId) return;
+
+            if (unsubscribeTransactions) unsubscribeTransactions();
+            if (unsubscribeGoals) unsubscribeGoals();
+
+            const transactionsRef = collection(db, `users/${userId}/transactions`);
+            unsubscribeTransactions = onSnapshot(transactionsRef, (snapshot) => {
+                allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateUI();
+            });
+
+            const goalsRef = collection(db, `users/${userId}/goals`);
+            unsubscribeGoals = onSnapshot(goalsRef, (snapshot) => {
+                allGoals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderGoals();
+            });
+        };
+
+        const unsubscribeFromData = () => {
+            if (unsubscribeTransactions) unsubscribeTransactions();
+            if (unsubscribeGoals) unsubscribeGoals();
+            allTransactions = [];
+            allGoals = [];
+            updateUI();
+        };
+
+        // UI Rendering Functions
+        const updateUI = () => {
+            const month = monthFilter.value;
+            const category = categoryFilter.value;
+
+            const filteredTransactions = allTransactions.filter(t => {
+                const transactionMonth = new Date(t.date).toLocaleString('default', { month: 'long', year: 'numeric' });
+                const monthMatch = month === 'all' || transactionMonth === month;
+                const categoryMatch = category === 'all' || t.category === category;
+                return monthMatch && categoryMatch;
+            }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+            renderTransactions(filteredTransactions);
+            populateFilters(allTransactions);
+            createCharts(filteredTransactions);
+        };
+
+        const populateFilters = (transactions) => {
+            const uniqueMonths = new Set(transactions.map(t => new Date(t.date).toLocaleString('default', { month: 'long', year: 'numeric' })));
+            const sortedMonths = [...uniqueMonths].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+            monthFilter.innerHTML = '<option value="all">All Months</option>' + sortedMonths.map(m => `<option value="${m}">${m}</option>`).join('');
+            monthFilter.value = monthFilter.value || 'all';
+
+            const uniqueCategories = new Set(transactions.map(t => t.category));
+            const sortedCategories = [...uniqueCategories].sort();
+            categoryFilter.innerHTML = '<option value="all">All Categories</option>' + sortedCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+            categoryFilter.value = categoryFilter.value || 'all';
+        };
+
+        const renderTransactions = (transactions) => {
+            transactionsList.innerHTML = transactions.map(t => `
+                <li class="p-3 rounded-lg shadow-sm animate-fade-in-slide-up ${t.type === 'income' ? 'bg-income-highlight' : 'bg-expense-highlight'}">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="font-semibold">${t.description || t.category}</span>
+                        <span class="${t.type === 'income' ? 'text-green-400' : 'text-red-400'}">
+                            ${t.type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-xs opacity-80 mt-1">
+                        <span>Category: ${t.category}</span>
+                        <span>${new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                </li>
+            `).join('');
+        };
+
+        const renderGoals = () => {
+            goalsList.innerHTML = allGoals.map(goal => `
+                <div class="bg-tertiary p-4 rounded-xl shadow-md border border-secondary">
+                    <h3 class="text-lg font-semibold">${goal.name}</h3>
+                    <p class="text-sm opacity-80">${goal.savedAmount.toFixed(2)} / ${goal.targetAmount.toFixed(2)}</p>
+                    <div class="w-full bg-primary rounded-full h-2.5 mt-2">
+                        <div class="bg-accent-blue h-2.5 rounded-full" style="width: ${(goal.savedAmount / goal.targetAmount) * 100}%;"></div>
+                    </div>
+                    <div class="flex mt-3 space-x-2">
+                        <input type="number" placeholder="Add amount" id="add-goal-amount-${goal.id}"
+                            class="w-full p-2 rounded-xl bg-secondary border border-tertiary text-white placeholder-tertiary focus:outline-none focus:ring-2 focus:ring-accent-light-blue transition-all duration-300 text-sm" />
+                        <button onclick="updateGoal('${goal.id}', document.getElementById('add-goal-amount-${goal.id}').value)"
+                            class="bg-accent-blue text-white py-1 px-3 rounded-xl text-sm hover:bg-accent-light-blue transition-colors duration-300 transform hover:scale-105">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.updateGoal = async (goalId, amountToAddStr) => {
+            const amountToAdd = parseFloat(amountToAddStr);
+            if (!goalId || isNaN(amountToAdd) || amountToAdd <= 0 || !userId) {
+                return;
+            }
+
+            const goal = allGoals.find(g => g.id === goalId);
+            if (!goal) { return; }
+
+            const goalRef = doc(db, `users/${userId}/goals`, goalId);
+            await updateDoc(goalRef, {
+                savedAmount: goal.savedAmount + amountToAdd,
+            });
+            document.getElementById(`add-goal-amount-${goalId}`).value = '';
+        };
+
+        const getRandomColor = () => {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        };
+        
+        const createCharts = (transactions) => {
+            if (typeof Chart === 'undefined') { return; }
+
+            // Destroy existing charts to prevent memory leaks
+            if (expensePieChart) expensePieChart.destroy();
+            if (expenseDoughnutChart) expenseDoughnutChart.destroy();
+            if (barChart) barChart.destroy();
+            if (waterfallChart) waterfallChart.destroy();
+            if (combinationChart) combinationChart.destroy();
+
+            const expensesByCategory = {};
+            transactions.filter(t => t.type === 'expense').forEach(t => {
+                expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+            });
+            const expenseCategories = Object.keys(expensesByCategory);
+            const expenseAmounts = Object.values(expensesByCategory);
+            const chartColors = expenseCategories.map(() => getRandomColor());
+            
+            // Pie Chart
+            const pieCtx = document.getElementById('expense-pie-chart').getContext('2d');
+            expensePieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: expenseCategories,
+                    datasets: [{ data: expenseAmounts, backgroundColor: chartColors, hoverOffset: 4 }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top', labels: { color: 'white' } } } }
+            });
+
+            // Doughnut Chart
+            const doughnutCtx = document.getElementById('expense-doughnut-chart').getContext('2d');
+            expenseDoughnutChart = new Chart(doughnutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: expenseCategories,
+                    datasets: [{ data: expenseAmounts, backgroundColor: chartColors, hoverOffset: 4 }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top', labels: { color: 'white' } } } }
+            });
+
+            // Bar Chart
+            const barCtx = document.getElementById('bar-chart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses'],
+                    datasets: [{
+                        label: 'Amount',
+                        data: [
+                            transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0),
+                            transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
+                        ],
+                        backgroundColor: ['#53A8B1', '#E96666'],
+                        borderColor: ['#53A8B1', '#E96666'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }, x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } } } }
+            });
+
+            // Waterfall Chart
+            const waterfallCtx = document.getElementById('waterfall-chart').getContext('2d');
+            const monthlyData = getMonthlySummary(allTransactions);
+            const waterfallLabels = ['Start'];
+            const waterfallData = [0];
+            let runningTotal = 0;
+
+            monthlyData.labels.forEach((month, i) => {
+                const income = monthlyData.income[i];
+                const expenses = monthlyData.expenses[i];
+                waterfallLabels.push(`Inc(${month})`);
+                waterfallData.push(income);
+                waterfallLabels.push(`Exp(${month})`);
+                waterfallData.push(-expenses);
+                runningTotal += income - expenses;
+            });
+            waterfallLabels.push('End');
+            waterfallData.push(runningTotal);
+
+            const colors = waterfallData.map(value => {
+                if (value > 0) return '#53A8B1';
+                if (value < 0) return '#E96666';
+                return '#ccc';
+            });
+            
+            waterfallChart = new Chart(waterfallCtx, {
+                type: 'bar',
+                data: {
+                    labels: waterfallLabels,
+                    datasets: [{
+                        label: 'Cash Flow',
+                        data: waterfallData,
+                        backgroundColor: colors,
+                        barPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                        x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    }
+                }
+            });
+
+            // Combination Chart
+            const combinationCtx = document.getElementById('combination-chart').getContext('2d');
+            const monthlySummary = getMonthlySummary(allTransactions);
+            const comboRunningBalance = [];
+            let balance = 0;
+            monthlySummary.labels.forEach((_, i) => {
+                balance += monthlySummary.income[i] - monthlySummary.expenses[i];
+                comboRunningBalance.push(balance);
+            });
+
+            combinationChart = new Chart(combinationCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlySummary.labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Income',
+                            data: monthlySummary.income,
+                            backgroundColor: '#53A8B1'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Expenses',
+                            data: monthlySummary.expenses,
+                            backgroundColor: '#E96666'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Running Balance',
+                            data: comboRunningBalance,
+                            borderColor: '#70A2FF',
+                            backgroundColor: 'rgba(112, 162, 255, 0.2)',
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                        x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    },
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    }
+                }
+            });
+        };
+
+        const getMonthlySummary = (transactions) => {
+            const monthlyData = new Map();
+            transactions.forEach(t => {
+                const month = new Date(t.date).toLocaleString('default', { month: 'short', year: '2-digit' });
+                if (!monthlyData.has(month)) {
+                    monthlyData.set(month, { income: 0, expenses: 0 });
+                }
+                const data = monthlyData.get(month);
+                if (t.type === 'income') {
+                    data.income += t.amount;
+                } else {
+                    data.expenses += t.amount;
+                }
+            });
+            const sortedMonths = [...monthlyData.keys()].sort((a, b) => {
+                const dateA = new Date(a);
+                const dateB = new Date(b);
+                return dateA.getTime() - dateB.getTime();
+            });
+            return {
+                labels: sortedMonths,
+                income: sortedMonths.map(m => monthlyData.get(m)?.income || 0),
+                expenses: sortedMonths.map(m => monthlyData.get(m)?.expenses || 0)
+            };
+        };
+        
+        // Final function call to start the app
+        initFirebase();
+
+        // Load Chart.js script after the DOM is loaded
+        const chartScript = document.createElement('script');
+        chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+        chartScript.onload = () => {
+            // Initial chart creation after Chart.js is loaded
+            if (userId) {
+                createCharts(allTransactions);
+            }
+        };
+        document.head.appendChild(chartScript);
+        
+        // UI Event Listeners
+        authToggleButton.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authTitle.textContent = isLoginMode ? 'Sign In' : 'Sign Up';
+            authButton.textContent = isLoginMode ? 'Login' : 'Register';
+            authToggleButton.textContent = isLoginMode ? 'Need an account? Register' : 'Already have an account? Login';
+            authError.textContent = '';
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.textContent = '';
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                authError.textContent = error.message;
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            await signOut(auth);
+        });
+
+        
+        addTransactionButton.addEventListener('click', async () => {
+            const amount = parseFloat(transactionAmountInput.value);
+            const type = transactionTypeSelect.value;
+            const category = transactionCategorySelect.value;
+
+            if (!amount || !category) {
+                transactionError.textContent = 'Please fill all transaction fields.';
+                return;
+            }
+            transactionError.textContent = '';
+
+            transactionError.textContent = '';
+            await addDoc(collection(db, `users/${userId}/transactions`), {
+                amount, type, category, date: new Date().toISOString()
+            });
+            showToast("Transaction Added ✅", "success");
+            transactionAmountInput.value = '';
+            transactionCategorySelect.selectedIndex = 0;
+        });
+
+        addGoalButton.addEventListener('click', async () => {
+            const name = goalNameInput.value;
+            const target = parseFloat(goalTargetInput.value);
+            if (!name || !target) {
+                document.getElementById('goal-error').textContent = 'Enter goal name and target';
+                return;
+        }
+        document.getElementById('goal-error').textContent = '';
+        await addDoc(collection(db, `users/${userId}/goals`), {
+            name, targetAmount: target, savedAmount: 0
+        });
+        showToast("Goal Set 🎯", "success");
+        goalNameInput.value = '';
+        goalTargetInput.value = '';
+    });
+    function showToast(message, type = "success") {
+    const container = document.getElementById("toastContainer");
+
+    const toast = document.createElement("div");
+    toast.className = `px-4 py-2 rounded-lg shadow-lg text-white animate-fade-in-down ${
+        type === "success" ? "bg-green-600" : "bg-red-600"
+    }`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add("opacity-0", "transition", "duration-500");
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+    }
+        monthFilter.addEventListener('change', updateUI);
+        categoryFilter.addEventListener('change', updateUI)
+</script>
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-5 right-5 space-y-3 z-50"></div>
+</body>
+</html>
